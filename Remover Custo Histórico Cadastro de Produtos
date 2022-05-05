@@ -1,0 +1,6 @@
+ALTER TABLE CustoHistorico DISABLE TRIGGER ALL
+
+DELETE from CustoHistorico where Origem = 3 and year(DtInsercao) = 2022
+and month(DtInsercao) >= 3 and AlteraCusto = 1 
+
+ALTER TABLE CustoHistorico ENABLE TRIGGER ALL
