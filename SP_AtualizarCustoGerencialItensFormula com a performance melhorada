@@ -1,0 +1,282 @@
+ALTER PROCEDURE [dbo].[SP_AtualizarCustoGerencialItensFormula] @CodProduto AS FLOAT   
+     , @ProdutoPai AS FLOAT     
+  , @CodNota AS FLOAT  
+  , @Sequencia AS INT  
+  , @DataCusto AS DATETIME  
+  , @CodLoja AS INT  
+  , @Origem AS SMALLINT  
+  , @CodOperador AS INT  
+  , @AlteraCusto AS BIT  
+  , @ValorBaseStRetido AS MONEY  
+  , @ReducaoBaseSt AS MONEY  
+  , @AliquotaIcmsStRetido AS MONEY  
+  , @AliquotaFcpStRetido AS MONEY  
+AS  
+--------------------------------------------------------------------------------------------       
+DECLARE @CD_ITEM FLOAT  
+DECLARE @CustoGerencial AS MONEY  
+DECLARE @CustoMedio AS FLOAT  
+DECLARE @CustoMargem AS MONEY  
+DECLARE @CustoPorcentagem AS MONEY  
+DECLARE @CustoValor AS MONEY  
+DECLARE @QtdProduzida AS MONEY  
+DECLARE @COMANDO AS NVARCHAR(800)  
+DECLARE @QtdItem AS MONEY  
+DECLARE @PropagaBaseSTCheiaFormulas AS BIT  
+DECLARE @ValorBaseStRetidoPai AS MONEY  
+
+DECLARE @PossuiFormula AS Bit
+
+IF @CodLoja = 0  
+  OR @CodLoja IS NULL  
+  SET @CodLoja = 1;  
+
+IF @AlteraCusto = 1  
+BEGIN  
+
+  -- Tratamento criado para sair logo se o produto nunca teve fórmula vigente (performance)
+  select top 1 @PossuiFormula = '1' from FormulasVigencia where DtFormula <= @DataCusto and CodItem = @CodProduto and CodProduto in (select codigo from produtos where VincularCustoGerencialTotalItens = 1 )
+  if @PossuiFormula is null
+  begin
+ return;
+  end
+
+
+  --------------------------------------------------------------------------------------------       
+  DECLARE rsCursor CURSOR LOCAL  
+  FOR  
+  SELECT T.CodProduto   
+   , SUM(T.QtItem * CustoGerencial) AS CustoGerencial   
+   , SUM(T.QtItem * CustoMedio) AS CustoMedio   
+   , SUM(T.QtItem * CustoMargem) AS CustoMargem      
+   , ISNULL(CustoPorcentagem, 0) AS CustoPorcentagem   
+   , ISNULL(CustoValor, 0) AS CustoValor   
+   , (ISNULL(QtdProduzida, 0) - ISNULL(Perda, 0)) AS QtdProduzida   
+  FROM (   
+   SELECT F.CodProduto   
+       , F.CodItem   
+       , F.QtItem   
+       ,    ISNULL ( 
+                        ( 
+                            SELECT TOP 1 CUSTOGERENCIAL
+                            FROM CustoHistorico CH WITH(NOLOCK) 
+                            WHERE CH.CodLoja = @CodLoja AND CH.CodProduto = F.CodItem AND CH.DtCusto <= @DataCusto And CH.AlteraCusto = 1
+                            ORDER BY DtCusto DESC, DtInsercao DESC  
+                        ),  
+                        ( 
+                            SELECT AVG(VW.CUSTOGERENCIAL) 
+                            FROM VW_ProdutoCustoLoja VW 
+                            WHERE VW.codproduto = F.CodItem 
+                            AND VW.CodLoja = @CodLoja 
+                        ) 
+            ) AS CustoGerencial
+       ,    ISNULL ( 
+                        ( 
+                            SELECT TOP 1 CustoMedio
+                            FROM CustoHistorico CH WITH(NOLOCK) 
+                            WHERE CH.CodLoja = @CodLoja AND CH.CodProduto = F.CodItem AND CH.DtCusto <= @DataCusto And CH.AlteraCusto = 1
+                            ORDER BY DtCusto DESC, DtInsercao DESC  
+                        ),  
+                        ( 
+                            SELECT AVG(VW.CustoMedio) 
+                            FROM VW_ProdutoCustoLoja VW 
+                            WHERE VW.codproduto = @CodProduto 
+                            AND VW.CodLoja = @CodLoja 
+                        ) 
+            ) AS CustoMedio
+      ,     ISNULL ( 
+                        ( 
+                            SELECT TOP 1 CUSTOMARGEM 
+                            FROM CustoHistorico CH WITH(NOLOCK) 
+                            WHERE CH.CodLoja = @CodLoja AND CH.CodProduto = F.CodItem AND CH.DtCusto <= @DataCusto And CH.AlteraCusto = 1
+                            ORDER BY DtCusto DESC, DtInsercao DESC  
+                        ),  
+                        ( 
+                            SELECT AVG(VW.CUSTOMARGEM) 
+                            FROM VW_ProdutoCustoLoja VW 
+                            WHERE VW.codproduto = F.CodItem 
+                            AND VW.CodLoja = @CodLoja 
+                        ) 
+            ) AS CustoMargem
+   FROM FormulasVigencia F   
+   INNER JOIN Produtos P ON (P.codigo = F.CodItem)   
+   WHERE F.CodProduto IN (   
+           SELECT DISTINCT (CD_PRODUTO)   
+           FROM dbo.FN_Formulas(@DataCusto) FF
+           INNER JOIN Produtos P ON (FF.CD_PRODUTO = P.Codigo)   
+           WHERE FF.CD_ITEM = @CodProduto   
+               AND P.VincularCustoGerencialTotalItens = 1   
+               AND CONVERT(DATETIME, F.DtFormula) = ISNULL((   
+                       SELECT TOP 1 CONVERT(DATETIME, F2.DtFormula)   
+                       FROM FormulasVigencia F2   
+                       WHERE F2.CodProduto = FF.CD_PRODUTO   
+                           AND F2.DtFormula <= @DataCusto   
+                       ORDER BY F2.DtFormula DESC   
+                       ), CONVERT(DATETIME, GETDATE()))   
+          ) 
+   ) AS T   
+  LEFT JOIN ProdutoCustoAdicional PCA ON PCA.CodProduto = T.CodProduto   
+  LEFT JOIN ProducaoPadaria PP ON PP.CodProduto = T.CodProduto   
+  GROUP BY T.CodProduto   
+   , CustoPorcentagem   
+   , CustoValor   
+   , QtdProduzida   
+   , Perda  
+
+  OPEN rsCursor  
+
+  FETCH NEXT  
+  FROM rsCursor  
+  INTO @CD_ITEM  
+   , @CustoGerencial  
+   , @CustoMedio  
+   , @CustoMargem  
+   , @CustoPorcentagem  
+   , @CustoValor  
+   , @QtdProduzida  
+
+  WHILE @@FETCH_STATUS = 0  
+  BEGIN  
+   IF @CustoPorcentagem > 0  
+   BEGIN  
+       IF @CustoGerencial > 0  
+       BEGIN  
+           SET @CustoGerencial = @CustoGerencial + ((@CustoGerencial * @CustoPorcentagem) / 100);  
+       END  
+
+       IF @CustoMargem > 0  
+       BEGIN  
+           SET @CustoMargem = @CustoMargem + ((@CustoMargem * @CustoPorcentagem) / 100);  
+       END  
+
+       IF @CustoMedio > 0  
+       BEGIN  
+           SET @CustoMedio = @CustoMedio + ((@CustoMedio * @CustoPorcentagem) / 100);  
+       END  
+   END  
+
+   IF @CustoValor > 0  
+   BEGIN  
+       IF @CustoGerencial > 0  
+       BEGIN  
+           SET @CustoGerencial = @CustoGerencial + @CustoValor;  
+       END  
+
+       IF @CustoMargem > 0  
+       BEGIN  
+           SET @CustoMargem = @CustoMargem + @CustoValor;  
+       END  
+
+       IF @CustoMedio > 0  
+       BEGIN  
+           SET @CustoMedio = @CustoMedio + @CustoValor;  
+       END  
+   END  
+
+   IF @QtdProduzida > 0  
+   BEGIN  
+       IF @CustoGerencial > 0  
+       BEGIN  
+           SET @CustoGerencial = @CustoGerencial / @QtdProduzida;  
+       END  
+
+       IF @CustoMargem > 0  
+       BEGIN  
+           SET @CustoMargem = @CustoMargem / @QtdProduzida;  
+       END  
+
+       IF @CustoMedio > 0  
+       BEGIN  
+           SET @CustoMedio = @CustoMedio / @QtdProduzida;  
+       END  
+   END  
+
+   IF (SELECT PropagaBaseSTCheiaFormulas FROM PRODUTOS WHERE CODIGO = @CD_ITEM) = 1  
+       SET @ValorBaseStRetidoPai = @ValorBaseStRetido  
+   ELSE  
+   BEGIN  
+       SET @QtdItem = (  
+               SELECT TOP 1 F.QtItem  
+               FROM FormulasVigencia F  
+               INNER JOIN Produtos P ON (P.codigo = F.CodItem)  
+               WHERE F.CodProduto IN (  
+                       SELECT DISTINCT (CD_PRODUTO)  
+                       FROM dbo.FN_Formulas(@DataCusto) FF  
+                       INNER JOIN Produtos P ON (FF.CD_PRODUTO = P.Codigo)  
+                       WHERE FF.CD_ITEM = @CodProduto  
+                           AND P.VincularCustoGerencialTotalItens = 1  
+                           AND CONVERT(DATETIME, F.DtFormula) = ISNULL((  
+                                   SELECT TOP 1 CONVERT(DATETIME, F2.DtFormula)  
+                                   FROM FormulasVigencia F2  
+                                   WHERE F2.CodProduto = FF.CD_PRODUTO  
+                                       AND F2.DtFormula <= @DataCusto  
+                                   ORDER BY F2.DtFormula DESC  
+                                   ), CONVERT(DATETIME, GETDATE()))  
+                       )  
+                   AND F.CodItem = @CodProduto  
+               )   
+ --    trello.com/c/B4sgVwOS Erro nas bases st de produto pai de formula   * ISNULL((SELECT TOP 1 QT_PRODUTO FROM NF_ENTRADAS_PRODUTOS WHERE CD_NOTA = @CodNota AND SEQUENCIA = @Sequencia), 1)  
+       SET @ValorBaseStRetidoPai = @ValorBaseStRetido * (  
+               CASE   
+                   WHEN @QtdItem = 0  
+                       THEN 1  
+                   ELSE @QtdItem  
+                   END  
+               )  
+   END  
+
+   -- Tratamento para não duplicar o custo do produto pai ao lançar uma nota com dois produtos que sejam filhos do mesmo pai , e esse pai      
+   -- utilize o custo dos filhos     
+   DELETE  
+   FROM CustoHistorico  
+   WHERE CodProdutoPai IS NOT NULL  
+       AND CodNota IS NOT NULL  
+       AND CodNota = @CodNota  
+       AND CodProduto = @CD_ITEM  
+
+   EXEC SP_InserirCustoHistorico @CodNota  
+       , @CD_ITEM  
+       , @ProdutoPai  
+       , @Sequencia  
+       , @DataCusto  
+       , @CodLoja  
+       , @CustoGerencial  
+       , @CustoMedio  
+       , @CustoMargem  
+       , @Origem  
+       , @CodOperador  
+       , @AlteraCusto  
+       , @ValorBaseStRetidoPai  
+       , @ReducaoBaseSt  
+       , @AliquotaIcmsStRetido  
+       , @AliquotaFcpStRetido  
+
+   EXEC SP_AtualizarCustoGerencialItensFormula @CD_ITEM  
+       , @ProdutoPai  
+       , @CodNota  
+       , @Sequencia  
+       , @DataCusto  
+       , @CodLoja  
+       , @Origem  
+       , @CodOperador  
+       , @AlteraCusto  
+       , @ValorBaseStRetidoPai  
+       , @ReducaoBaseSt  
+       , @AliquotaIcmsStRetido  
+       , @AliquotaFcpStRetido  
+
+   FETCH NEXT  
+   FROM rsCursor  
+   INTO @CD_ITEM  
+       , @CustoGerencial  
+       , @CustoMedio  
+       , @CustoMargem  
+       , @CustoPorcentagem  
+       , @CustoValor  
+       , @QtdProduzida  
+  END  
+
+  CLOSE rsCursor  
+
+  DEALLOCATE rsCursor  
+END  
