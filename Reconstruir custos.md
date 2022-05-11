@@ -4,10 +4,11 @@
 
   -- ARRUMAR AS CONFIGURAÇÕES DOS PRODUTOS
 
-       UPDATE P set  FatorCustoDePaiParaFilho = 1, VincularCustoGerencialTotalItens = 0 from produtos p where FatorCustoDePaiParaFilho = 1 and VincularCustoGerencialTotalItens = 1
-         AND codigo in (select distinct CD_PRODUTO from NF_ENTRADAS_PRODUTOS )
-
-       update produtos set VincularCustoGerencialTotalItens = 0 where VincularCustoGerencialTotalItens = 1 and FatorCustoDePaiParaFilho = 1	   
+	   UPDATE P set  FatorCustoDePaiParaFilho = 1, VincularCustoGerencialTotalItens = 0
+     FROM produtos p where FatorCustoDePaiParaFilho = 1 and VincularCustoGerencialTotalItens = 1
+     AND codigo in (select distinct CD_PRODUTO from NF_ENTRADAS_PRODUTOS )
+       
+	   update produtos set FatorCustoDePaiParaFilho = 0, VincularCustoGerencialTotalItens = 1 where VincularCustoGerencialTotalItens = 1 and FatorCustoDePaiParaFilho = 1	    
 
 
   -- RODAR O SCRIPT PARA CORREÇÃO DAS NOTAS
