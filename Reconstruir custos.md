@@ -1,10 +1,5 @@
 ``` SQL
 
-  --select top 1000 * from CustoHistorico order by DtInsercao desc
-
---select * into bkpProdutos from Produtos 
---select * into bkpCustoHistorico from CustoHistorico where year(DtCusto) = 2022
-
 -- ARRUMAR AS CONFIGURAÇÕES DOS PRODUTOS
       
 	   UPDATE P set  FatorCustoDePaiParaFilho = 1, VincularCustoGerencialTotalItens = 0 from produtos p where FatorCustoDePaiParaFilho = 1 and VincularCustoGerencialTotalItens = 1
