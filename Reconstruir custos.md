@@ -1,5 +1,16 @@
 ``` SQL
 
+-- QUESTÃO DOS PRODUTOS DE TAXAS (APENAS PARA O CLIENTE ÍNDIO) 
+
+ 	ALTER TABLE CustoHistorico DISABLE TRIGGER ALL
+
+	DELETE from CustoHistorico where CodProduto in (select codigo from produtos where Descricao like '%taxa%')
+	DELETE from CustoHistorico where CodProdutoPai in (select codigo from produtos where Descricao like '%taxa%')
+
+	ALTER TABLE CustoHistorico ENABLE TRIGGER ALL
+
+GO
+
 -- ARRUMAR AS CONFIGURAÇÕES DOS PRODUTOS
       
 	   UPDATE P set  FatorCustoDePaiParaFilho = 1, VincularCustoGerencialTotalItens = 0 from produtos p where FatorCustoDePaiParaFilho = 1 and VincularCustoGerencialTotalItens = 1
