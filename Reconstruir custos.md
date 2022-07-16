@@ -1,24 +1,29 @@
 ``` SQL
 
--- QUESTÃO DOS PRODUTOS DE TAXAS (APENAS PARA O CLIENTE ÍNDIO) 
+-- QUESTÃO DOS PRODUTOS DE TAXAS (APENAS PARA O CLIENTE ÍNDIO) 		
 
- 	ALTER TABLE CustoHistorico DISABLE TRIGGER ALL
+		-- VERIFICAR PRODUTOS COM POSSÍVEL ERRO DE CADASTRO NA FÓRMULA 
 
-	DELETE from CustoHistorico where CodProduto in (select codigo from produtos where Descricao like '%taxa%')
-	DELETE from CustoHistorico where CodProdutoPai in (select codigo from produtos where Descricao like '%taxa%')
+		SELECT
+		CD_PRODUTO,
+		(select Descricao from produtos where CODIGO = CD_PRODUTO),
+		CD_ITEM,
+		(select Descricao from produtos where CODIGO = CD_ITEM) 
+		FROM Formulas WHERE 
+		CD_ITEM IN (select codigo from produtos where Descricao like '%taxa%')
+		AND CD_PRODUTO in  (select codigo from produtos where FatorCustoDePaiParaFilho = 1)
+		AND FatorCusto > 0
 
-	ALTER TABLE CustoHistorico ENABLE TRIGGER ALL
 
-GO
+		-- EXCLUIR CUSTOS DOS PRODUTOS DE TAXAS
 
--- ARRUMAR AS CONFIGURAÇÕES DOS PRODUTOS
-      
-	   UPDATE P set  FatorCustoDePaiParaFilho = 1, VincularCustoGerencialTotalItens = 0 from produtos p where FatorCustoDePaiParaFilho = 1 and VincularCustoGerencialTotalItens = 1
-       AND codigo in (select distinct CD_PRODUTO from NF_ENTRADAS_PRODUTOS )
-       
-GO
+		ALTER TABLE CustoHistorico DISABLE TRIGGER ALL
 
-	   update produtos set FatorCustoDePaiParaFilho = 0, VincularCustoGerencialTotalItens = 1 where VincularCustoGerencialTotalItens = 1 and FatorCustoDePaiParaFilho = 1	   
+		DELETE from CustoHistorico where CodProduto in (select codigo from produtos where Descricao like '%taxa%')
+		DELETE from CustoHistorico where CodProdutoPai in (select codigo from produtos where Descricao like '%taxa%')
+
+		ALTER TABLE CustoHistorico ENABLE TRIGGER ALL
+	
 	   
 GO
 
@@ -232,6 +237,7 @@ GO
         AND ( CustoHistorico.CODPRODUTO IN ( SELECT DISTINCT CD_ITEM FROM FN_Formulas(GETDATE())) or CustoHistorico.CODPRODUTO IN ( SELECT DISTINCT CD_PRODUTO FROM FN_Formulas(GETDATE()))) 
          
        ALTER TABLE CustoHistorico ENABLE TRIGGER ALL 
+
 
 
 
