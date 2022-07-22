@@ -1,3 +1,5 @@
+``` SQL
+
 DECLARE @DataVersao as datetime
 set @DataVersao = '2022-07-14 11:00:00'
 
@@ -39,3 +41,5 @@ on ProdutosAlterados.CD_ASSOCIADO = ProdutosAssociados.CD_ASSOCIADO
 WHERE ProdutosAlterados.valorProduto <> ProdutosAssociados.valorProduto
 
 order by abs(ProdutosAssociados.valorProduto - ProdutosAlterados.valorProduto) DESC
+
+```
