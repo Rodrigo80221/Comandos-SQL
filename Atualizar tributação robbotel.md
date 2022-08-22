@@ -1,3 +1,5 @@
+``` sql
+
 CREATE TABLE BARRAROBBOTEL (BARRAS NVARCHAR(20))
 
 SELECT * FROM BARRAROBBOTEL
@@ -31,3 +33,6 @@ inner join PRODUTO_BARRAS pb on pb.CD_PRODUTO = P.Codigo
 inner join AliquotasPisCofins apc on apc.Codigo = p.CodAliquotaPisCofins  
 inner join Aliquotas a on a.Codigo = p.Aliquota 
 inner join BARRAROBBOTEL robbo on pb.Barras = robbo.barras
+
+
+```
