@@ -32,4 +32,48 @@ inner join AliquotasPisCofins apc on apc.Codigo = p.CodAliquotaPisCofins
 inner join Aliquotas a on a.Codigo = p.Aliquota 
 inner join BARRAROBBOTEL robbo on pb.Barras = robbo.barras
 
+
+
+/*
+TABELA DE PRODUTOS DO ROBBOTEL
+
+CREATE TABLE Produtos (
+   Codigo nVarChar(20) Not Null,
+   Nome nVarChar(50) Not Null,
+   Valor Money Not Null,
+   [CD_Informacao] Int Null,
+   [Texto_Adicional] nVarChar(1024) Null,
+   [Arquivo_Audio] nVarChar(256) Null,
+   Promocao Bit Null,
+   Icms nVarChar(20) Null,
+   MVA Decimal(18, 2) Null,
+   AliquotaIcmsNFSaidas Decimal(18, 2) Null,
+   [ICMS_COMPRA] Decimal(18, 2) Null,
+   CFOP nVarChar(4) Null,
+   AliquotaICMSST Decimal(18, 2) Null,
+   AliquotaFCPST Decimal(18, 2) Null,
+   [BASE_REDUZIDA_ICMS] Decimal(18, 2) Null,
+   BaseReduzidaST Decimal(18, 2) Null,
+   ST nVarChar(3) Null,
+   IPI Decimal(18, 3) Null,
+   PisCofins nVarChar(20) Null,
+   NaturezaReceita nVarChar(20) Null,
+   NCM nVarChar(20) Null,
+   [EX_Tipi] nVarChar(3) Null,
+   CodigoCest nVarChar(20) Null,
+   FundoCombateaPobreza Bit Null, 
+   CONSTRAINT PK_Produtos Primary Key (
+      Codigo
+      )
+   )
+
+GO 
+CREATE NONCLUSTERED INDEX idx_produtos On Produtos
+      (
+      Nome
+      )
+
+
+*/
+
 ```
