@@ -1,4 +1,4 @@
-``` SQL
+``` sql
 
 
   DECLARE @Codigo TINYINT
