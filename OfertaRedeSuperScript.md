@@ -81,7 +81,7 @@ BEGIN
 							END 
 
 							INSERT INTO PACKVIRTUAL (Codigo,Descricao,DtInicial,DtFinal,ModeloPack,QtdRegra,VlrRegra,EnviouPreco2,CodEncarte,ValidoClienteNaoIdent,TipoAjusteValor,AjusteUltimaCasaDecimal,QuantidadeLimite,CodScannTech)
-							SELECT @CODPACK , @TITULOPACK , @DATA_INICIO , @DATA_FIM, 4,1,@PRECO_PROMOCIONAL,0,1,1,NULL,0,0,0
+							SELECT @CODPACK , @TITULOPACK , @DATA_INICIO , @DATA_FIM, 4,1,@PRECO_PROMOCIONAL,0,1,1,'',0,0,0
 
 							PRINT 'PROMOÇÃO PACK INSERIDA (' + CONVERT(NVARCHAR,@CODPACK) + ': ' + @TITULOPACK + ')' 
 						
