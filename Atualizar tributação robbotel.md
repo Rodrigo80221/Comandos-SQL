@@ -76,4 +76,36 @@ CREATE NONCLUSTERED INDEX idx_produtos On Produtos
 
 */
 
+
+select 
+'INSERT INTO Produtos Select ' +
+'''' + CONVERT(NVARCHAR(50),(select top 1 BARRAS from produto_barras where CD_PRODUTO = P.CODIGO)) + '''' + ',' +
+'''' + P.DESCRICAO + '''' + ',' +
+ltrim(STR(ISNULL(PL.ValorNoPdv,0),50,2)) + ',' +
+'1' + ',' +
+'''' + '''' + ',' +
+'''' + '''' + ',' +
+'0' + ',' +
+'''' + CONVERT(NVARCHAR(20),A.Descricao) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.MVA) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.AliquotaIcmsNFSaidas,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.ICMS_COMPRA,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.CFOP) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.AliquotaICMSST,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.AliquotaFCPST,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.BASE_REDUZIDA_ICMS,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.BaseReduzidaST,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.ST) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.IPI,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(ALP.PisSaida,0)) + ' - ' + CONVERT(NVARCHAR(20),ISNULL(ALP.CofinsSaida,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),ISNULL(P.NaturezaReceita,0)) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.NCM) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.EX_Tipi) + '''' + ',' +
+'''' + CONVERT(NVARCHAR(20),P.CodigoCest) + '''' + ',' +
+'0' 
+from Produtos P
+LEFT JOIN AliquotasPisCofins ALP ON P.CodAliquotaPisCofins = ALP.Codigo 
+LEFT JOIN ALIQUOTAS A ON P.Aliquota = A.Codigo
+LEFT JOIN ProdutoLojas PL ON P.Codigo = PL.codProduto AND PL.codLoja = 1
+where SUBSTRING(config,1,1) = '1' and p.Codigo in (select CD_PRODUTO from PRODUTO_BARRAS)
 ```
