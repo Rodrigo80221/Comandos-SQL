@@ -119,4 +119,43 @@ LEFT JOIN AliquotasPisCofins ALP ON P.CodAliquotaPisCofins = ALP.Codigo
 LEFT JOIN ALIQUOTAS A ON P.Aliquota = A.Codigo
 LEFT JOIN ProdutoLojas PL ON P.Codigo = PL.codProduto AND PL.codLoja = 1
 where SUBSTRING(config,1,1) = '1' and p.Codigo in (select CD_PRODUTO from PRODUTO_BARRAS)
+
+
+-- EXEMPLO DE INSERT DE UM PRODUTO ÚNICO
+
+INSERT INTO Produtos 
+(
+    Codigo, Nome, Valor, CD_Informacao, Texto_Adicional, Arquivo_Audio, 
+    Promocao, Icms, MVA, AliquotaIcmsNFSaidas, ICMS_COMPRA, CFOP, 
+    AliquotaICMSST, AliquotaFCPST, BASE_REDUZIDA_ICMS, BaseReduzidaST, 
+    ST, IPI, PisCofins, NaturezaReceita, NCM, EX_Tipi, CodigoCest, 
+    FundoCombateaPobreza
+)
+VALUES 
+(
+    '7894561230001',         -- Codigo
+    'Produto Exemplo',       -- Nome
+    150.75,                  -- Valor
+    null,                    -- CD_Informacao
+    null,                    -- Texto_Adicional
+    null,                    -- Arquivo_Audio
+    0,                       -- Promocao
+    '18%',                   -- Icms
+    20.50,                   -- MVA
+    12.5,                    -- AliquotaIcmsNFSaidas
+    15.8,                    -- ICMS_COMPRA
+    '5102',                  -- CFOP
+    8.25,                    -- AliquotaICMSST
+    2.15,                    -- AliquotaFCPST
+    0.00,                    -- BASE_REDUZIDA_ICMS
+    0.00,                    -- BaseReduzidaST
+    '000',                   -- ST
+    5.000,                   -- IPI
+    '12345',                 -- PisCofins
+    'Receita123',            -- NaturezaReceita
+    '12345678',              -- NCM
+    'EX1',                   -- EX_Tipi
+    '7894561230001',         -- CodigoCest
+    1                        -- FundoCombateaPobreza
+);
 ```
