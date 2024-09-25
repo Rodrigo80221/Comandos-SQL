@@ -1,11 +1,15 @@
 ``` sql
 
+1. Criar tabela no banco do Gestão (Santana)
+
 CREATE TABLE BARRAROBBOTEL (BARRAS NVARCHAR(20))
 
-SELECT * FROM BARRAROBBOTEL
+2. Executar Script no banco do Robbotel para coletar todas as barras.
+2.1 Executar scrip populando a tabela BARRAROBBOTEL no banco do Gestão (Santana)
 
 INSERT INTO BARRAROBBOTEL (BARRAS) VALUES ('7891097001062')
 
+3. Rodar comando abaixo no banco do Gestão (Santana) para gerar os comandos de UPDATE
 
 select 
 'UPDATE Produtos SET ' ,
@@ -32,10 +36,15 @@ inner join AliquotasPisCofins apc on apc.Codigo = p.CodAliquotaPisCofins
 inner join Aliquotas a on a.Codigo = p.Aliquota 
 inner join BARRAROBBOTEL robbo on pb.Barras = robbo.barras
 
+4. Rodar os Updates no banco do RobboTel (Pelo maneagent studio)
+
+FIM
+---------------------------------------------------------------------------------------------------------------------------
 
 
 /*
-TABELA DE PRODUTOS DO ROBBOTEL
+
+Backup da TABELA DE PRODUTOS DO ROBBOTEL
 
 CREATE TABLE Produtos (
    Codigo nVarChar(20) Not Null,
@@ -76,6 +85,7 @@ CREATE NONCLUSTERED INDEX idx_produtos On Produtos
 
 */
 
+SCRIPT PARA REFAZER A BASE DE PRODUTOS DO ROBBOTEL 
 
 select 
 'INSERT INTO Produtos Select ' +
