@@ -7,7 +7,8 @@ CREATE TABLE BARRAROBBOTEL (BARRAS NVARCHAR(20))
 2. Executar Script no banco do Robbotel para coletar todas as barras.
 2.1 Executar scrip populando a tabela BARRAROBBOTEL no banco do Gestão (Santana)
 
-INSERT INTO BARRAROBBOTEL (BARRAS) VALUES ('7891097001062')
+SELECT 'INSERT INTO BARRAROBBOTEL (BARRAS) VALUES (' + '''' + CODIGO + '''' + ')' FROM PRODUTOS
+--INSERT INTO BARRAROBBOTEL (BARRAS) VALUES ('7891097001062')
 
 3. Rodar comando abaixo no banco do Gestão (Santana) para gerar os comandos de UPDATE
 
